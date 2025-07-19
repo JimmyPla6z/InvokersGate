@@ -25,8 +25,8 @@ Invoker’s Gate makes this capability more accessible by wrapping it in a graph
 ## Installation
 
 ### Option A: Use The Installer
-- Go to the [releases page](https://github.com/JimmyPla6z/InvokersGate/releases)
-- Click on the WinGUILite-Installer.exe, which will automatically download the installer
+- Go to the [releases page](https://github.com/JimmyPla6z/InvokersGate/releases/latest)
+- In the assets section, click on the InvokersGate-Installer.exe file, which will automatically download the installer
 - Run the installer.
 - Once the installer is completed, launch the app and start bypassing UAC prompts ethically.
 
