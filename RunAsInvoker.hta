@@ -1,0 +1,187 @@
+<html>
+<head>
+  <title>Invokers Gate</title>
+  <HTA:APPLICATION
+    ID="htaApp"
+    APPLICATIONNAME="Invokers Gate"
+    BORDER="thin"
+    CAPTION="yes"
+    SHOWINTASKBAR="yes"
+    SINGLEINSTANCE="yes"
+    SYSMENU="yes"
+    SCROLL="no"
+    WINDOWSTATE="normal"
+  />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #111;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      font-size: 18px;
+      color: #eef2f5;
+    }
+    #container {
+      background: #1e1e1e;
+      padding: 40px 60px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      text-align: center;
+      max-width: 600px;
+      width: auto;
+      display: inline-block;
+    }
+    h1 {
+      margin-bottom: 12px;
+      font-size: 2.4em;
+      color: #00d0ff;
+      line-height: 1.2;
+    }
+    p {
+      margin-bottom: 32px;
+      font-size: 1.1em;
+      color: #cfd8dc;
+    }
+    #controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    #controls input[type="text"] {
+      flex: 1 1 300px;
+      padding: 12px 16px;
+      background: #2b2b2b;
+      border: 2px solid #00d0ff;
+      border-radius: 6px;
+      color: #eef2f5;
+      transition: border-color 0.2s;
+    }
+    #controls input[type="text"]:focus {
+      border-color: #33ffff;
+      outline: none;
+    }
+    #controls button {
+      padding: 12px 24px;
+      background: #00d0ff;
+      border: none;
+      border-radius: 6px;
+      color: #111;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    #controls button:hover:not(:disabled) {
+      background: #33ffff;
+      transform: translateY(-1px);
+    }
+    #controls button:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+    #controls button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    #filePicker { display: none; }
+    #status {
+      font-size: 0.95em;
+      color: #a0aeb7;
+      min-height: 1.5em;
+    }
+  </style>
+
+  <script language="vbscript">
+    Dim selectedFile, manualPathEl, launchBtnEl, statusEl, filePickerEl, fso
+
+    Sub window_onload()
+      ' get elements
+      Set manualPathEl = Document.getElementById("manualPath")
+      Set launchBtnEl  = Document.getElementById("btnLaunch")
+      Set statusEl     = Document.getElementById("status")
+      Set filePickerEl = Document.getElementById("filePicker")
+      Set fso          = CreateObject("Scripting.FileSystemObject")
+
+      ' size & center window to content
+      Call AdjustWindowToContent()
+    End Sub
+
+    Sub AdjustWindowToContent()
+      Dim cw, ch, extraW, extraH, screenW, screenH, posX, posY
+      cw = Document.getElementById("container").offsetWidth
+      ch = Document.getElementById("container").offsetHeight
+
+      ' fudge factors for window chrome (borders + title bar)
+      extraW = 20
+      extraH = 80
+
+      screenW = window.screen.availWidth
+      screenH = window.screen.availHeight
+
+      ' center
+      posX = (screenW - (cw + extraW)) \ 2
+      posY = (screenH - (ch + extraH)) \ 2
+
+      window.resizeTo cw + extraW, ch + extraH
+      window.moveTo posX, posY
+    End Sub
+
+    Sub btnBrowse_OnClick()
+      filePickerEl.click
+    End Sub
+
+    Sub filePicker_OnChange()
+      If fso.FileExists(filePickerEl.value) Then
+        manualPathEl.value = filePickerEl.value
+        selectedFile = filePickerEl.value
+        statusEl.innerText = "Selected: " & selectedFile
+        launchBtnEl.Disabled = False
+      End If
+    End Sub
+
+    Sub manualPathEl_OnChange()
+      Dim txt
+      txt = manualPathEl.value
+      If txt <> "" And fso.FileExists(txt) Then
+        selectedFile = txt
+        statusEl.innerText = "Selected: " & selectedFile
+        launchBtnEl.Disabled = False
+      Else
+        launchBtnEl.Disabled = True
+        statusEl.innerText = "Invalid path! Please enter a valid path."
+      End If
+    End Sub
+
+    Sub btnLaunch_OnClick()
+      If Not fso.FileExists(selectedFile) Then
+        MsgBox "Please select a valid executable path.", vbExclamation, "Invoker’s Gate"
+        Exit Sub
+      End If
+      statusEl.innerText = "Invoking “" & selectedFile & "”…"
+      Dim shell, cmd
+      Set shell = CreateObject("WScript.Shell")
+      cmd = "%COMSPEC% /c set __COMPAT_LAYER=RUNASINVOKER && start """" """ & selectedFile & """"
+      shell.Run cmd, 1, False
+      statusEl.innerText = "App successfully launched. You may now close this gate."
+    End Sub
+  </script>
+</head>
+
+<body>
+  <div id="container">
+    <h1>Invokers Gate</h1>
+    <p>Browse or paste a path below to launch without elevation.</p>
+    <div id="controls">
+      <input type="text" id="manualPath"
+             placeholder="C:\path\to\YourApp.exe"
+             onchange="manualPathEl_OnChange()" />
+      <button onclick="btnBrowse_OnClick()">Browse...</button>
+      <input type="file" id="filePicker" accept=".exe"
+             onchange="filePicker_OnChange()" />
+      <button id="btnLaunch" enabled
+              onclick="btnLaunch_OnClick()">Launch</button>
+    </div>
+    <div id="status"></div>
+  </div>
+</body>
+</html>
